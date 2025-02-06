@@ -133,22 +133,58 @@
         });
 
         async function updateLeaderboard() {
-            const querySnapshot = await getDocs(collection(db, "quiz_results"));
-            
-            groupScores = {};
-            groupCorrectAnswers = {};
-            groupParticipants = {};
+    const querySnapshot = await getDocs(collection(db, "quiz_results"));
+    
+    groupScores = {};
+    groupCorrectAnswers = {};
+    groupParticipants = {};
 
-            querySnapshot.forEach(doc => {
-    const data = doc.data();
-    console.log(`Документ:`, data);
+    querySnapshot.forEach(doc => {
+        const data = doc.data();
 
-    if (!groupScores[data.group]) {
-        groupScores[data.group] = 0;
-        groupCorrectAnswers[data.group] = 0; // Тут храним сумму правильных ответов (score)
-        groupParticipants[data.group] = 0;
-        groupColors[data.group] = getRandomColor();
-    }
+        if (!groupScores[data.group]) {
+            groupScores[data.group] = 0;
+            groupCorrectAnswers[data.group] = 0;
+            groupParticipants[data.group] = 0;
+            groupColors[data.group] = getRandomColor();
+        }
+
+        groupScores[data.group] += data.score ?? 0;
+        groupCorrectAnswers[data.group] += Number(data.score) || 0;
+        groupParticipants[data.group] += 1;
+    });
+
+    // **Создаём массив с процентами и сортируем**
+    let groupAccuracy = Object.keys(groupScores).map(group => {
+        return {
+            group,
+            accuracy: groupParticipants[group] > 0 ? Math.round((groupCorrectAnswers[group] / (groupParticipants[group] * 10)) * 100) : 0
+        };
+    });
+
+    // **Сортируем по accuracy по убыванию**
+    groupAccuracy.sort((a, b) => b.accuracy - a.accuracy);
+
+    // **Обновляем диаграмму (по groupScores, как было)**
+    let sortedGroups = Object.keys(groupScores).sort((a, b) => groupScores[b] - groupScores[a]);
+    chart.data.labels = sortedGroups;
+    chart.data.datasets[0].data = sortedGroups.map(group => groupScores[group]);
+    chart.data.datasets[0].backgroundColor = sortedGroups.map(group => groupColors[group]);
+    chart.update();
+
+    // **Обновляем статистику (по accuracy, а не по score!)**
+    const statsContainer = document.getElementById("statsContainer");
+    statsContainer.innerHTML = "";
+
+    groupAccuracy.forEach(({ group, accuracy }) => {
+        let statItem = document.createElement("div");
+        statItem.classList.add("stats-item");
+        statItem.style.color = groupColors[group];
+        statItem.innerHTML = `<span class='group-name'>Группа ${group}</span> <span>${accuracy}%</span>`;
+        statsContainer.appendChild(statItem);
+    });
+}
+
 
     console.log(`Перед добавлением: ${groupCorrectAnswers[data.group]}`);
     
