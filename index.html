@@ -140,20 +140,25 @@
             groupParticipants = {};
 
             querySnapshot.forEach(doc => {
-                console.log(`Документ:`, data);
-                const data = doc.data();
-                if (!groupScores[data.group]) {
-                    groupScores[data.group] = 0;
-                    groupCorrectAnswers[data.group] = 0;
-                    groupParticipants[data.group] = 0;
-                    groupColors[data.group] = getRandomColor();
-                }
-                console.log(`Перед добавлением: ${groupCorrectAnswers[data.group]}`);
-                groupScores[data.group] += data.score;
-                groupCorrectAnswers[data.group] += data.correct_answers;
-                groupParticipants[data.group] += 1;
-                console.log(`После добавления: ${groupCorrectAnswers[data.group]}`);
-            });
+    const data = doc.data();
+    console.log(`Документ:`, data);
+
+    if (!groupScores[data.group]) {
+        groupScores[data.group] = 0;
+        groupCorrectAnswers[data.group] = 0; // Тут храним сумму правильных ответов (score)
+        groupParticipants[data.group] = 0;
+        groupColors[data.group] = getRandomColor();
+    }
+
+    console.log(`Перед добавлением: ${groupCorrectAnswers[data.group]}`);
+    
+    groupScores[data.group] += data.score;
+    groupCorrectAnswers[data.group] += Number(data.score) || 0; // Исправляем, берём score вместо correct_answers
+    groupParticipants[data.group] += 1;
+    
+    console.log(`После добавления: ${groupCorrectAnswers[data.group]}`);
+});
+
 
             
 
@@ -169,7 +174,8 @@
             
             sortedGroups.forEach(group => {
                 console.log(`Группа: ${group}, Правильных ответов: ${groupCorrectAnswers[group]}, Участников: ${groupParticipants[group]}`);
-                let accuracy = groupParticipants[group] > 0 ? Math.round((groupCorrectAnswers[group] / (groupParticipants[group] * 10)) * 100) : 0;
+               let accuracy = groupParticipants[group] > 0 ? Math.round((groupCorrectAnswers[group] / (groupParticipants[group] * 10)) * 100) : 0;
+
                 console.log(`Рассчитанный процент для ${group}: ${accuracy}%`);
                 let statItem = document.createElement("div");
                 statItem.classList.add("stats-item");
