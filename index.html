@@ -163,7 +163,9 @@
             statsContainer.innerHTML = "";
             
             sortedGroups.forEach(group => {
+                console.log(`Группа: ${group}, Правильных ответов: ${groupCorrectAnswers[group]}, Участников: ${groupParticipants[group]}`);
                 let accuracy = groupParticipants[group] > 0 ? Math.round((groupCorrectAnswers[group] / (groupParticipants[group] * 10)) * 100) : 0;
+                console.log(`Рассчитанный процент для ${group}: ${accuracy}%`);
                 let statItem = document.createElement("div");
                 statItem.classList.add("stats-item");
                 statItem.style.color = groupColors[group];
