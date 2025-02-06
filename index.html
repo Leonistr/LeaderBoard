@@ -11,14 +11,40 @@
             background: #121212;
             color: white;
             text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-top: 1rem;
         }
         .leaderboard-container {
             width: 90%;
             max-width: 800px;
             margin: auto;
+            padding: 1rem;
         }
         canvas {
             background: transparent;
+            width: 100%;
+            height: auto;
+        }
+
+        /* Мобильная адаптивность */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5rem; /* Уменьшение размера шрифта для мобильных */
+            }
+            .leaderboard-container {
+                width: 100%;
+                padding: 0.5rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 1.2rem;
+            }
         }
     </style>
 </head>
