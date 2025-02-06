@@ -140,6 +140,7 @@
             groupParticipants = {};
 
             querySnapshot.forEach(doc => {
+                console.log(`Документ:`, data);
                 const data = doc.data();
                 if (!groupScores[data.group]) {
                     groupScores[data.group] = 0;
@@ -147,10 +148,14 @@
                     groupParticipants[data.group] = 0;
                     groupColors[data.group] = getRandomColor();
                 }
+                console.log(`Перед добавлением: ${groupCorrectAnswers[data.group]}`);
                 groupScores[data.group] += data.score;
                 groupCorrectAnswers[data.group] += data.correct_answers;
                 groupParticipants[data.group] += 1;
+                console.log(`После добавления: ${groupCorrectAnswers[data.group]}`);
             });
+
+            
 
             let sortedGroups = Object.keys(groupScores).sort((a, b) => groupScores[b] - groupScores[a]);
             
