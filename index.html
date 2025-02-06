@@ -8,13 +8,13 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: transparent;
+            background: #121212;
             color: white;
             text-align: center;
         }
         .leaderboard-container {
             width: 90%;
-            max-width: 1000px;
+            max-width: 800px;
             margin: auto;
         }
         canvas {
@@ -53,22 +53,31 @@
             "309": 0, "310": 0, "311": 0, "312": 0, "403": 0, "404": 0
         };
 
+        // Генерация разных цветов для групп
+        function getRandomColor() {
+            return `hsl(${Math.random() * 360}, 70%, 60%)`;
+        }
+        let groupColors = {};
+        Object.keys(groupScores).forEach(group => {
+            groupColors[group] = getRandomColor();
+        });
+
         const ctx = document.getElementById("leaderboardChart").getContext("2d");
 
         const chart = new Chart(ctx, {
             type: "bar",
             data: {
-                labels: Object.keys(groupScores),
+                labels: [],
                 datasets: [{
                     label: "Общий счёт",
-                    data: Object.values(groupScores),
-                    backgroundColor: "rgba(54, 162, 235, 0.7)",
-                    borderColor: "rgba(54, 162, 235, 1)",
+                    data: [],
+                    backgroundColor: [],
                     borderWidth: 1
                 }]
             },
             options: {
                 responsive: true,
+                indexAxis: 'y', // Горизонтальные полосы
                 plugins: {
                     legend: {
                         display: false
@@ -76,14 +85,14 @@
                 },
                 scales: {
                     x: {
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
                         beginAtZero: true,
                         grid: {
                             color: "rgba(255, 255, 255, 0.2)"
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
                         }
                     }
                 },
@@ -108,7 +117,14 @@
                 }
             });
 
-            chart.data.datasets[0].data = Object.values(groupScores);
+            // Отфильтровать группы с нулевым счётом
+            let filteredGroups = Object.keys(groupScores).filter(group => groupScores[group] > 0);
+            let filteredScores = filteredGroups.map(group => groupScores[group]);
+            let filteredColors = filteredGroups.map(group => groupColors[group]);
+
+            chart.data.labels = filteredGroups;
+            chart.data.datasets[0].data = filteredScores;
+            chart.data.datasets[0].backgroundColor = filteredColors;
             chart.update();
         }
 
