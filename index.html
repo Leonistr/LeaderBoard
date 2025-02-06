@@ -85,12 +85,11 @@
 
         let groupScores = {};
         let groupCorrectAnswers = {};
-        let groupTotalAnswers = {};
+        let groupColors = {};
 
         function getRandomColor() {
             return `hsl(${Math.random() * 360}, 70%, 60%)`;
         }
-        let groupColors = {};
 
         const ctx = document.getElementById("leaderboardChart").getContext("2d");
         
@@ -137,19 +136,16 @@
             
             groupScores = {};
             groupCorrectAnswers = {};
-            groupTotalAnswers = {};
 
             querySnapshot.forEach(doc => {
                 const data = doc.data();
                 if (!groupScores[data.group]) {
                     groupScores[data.group] = 0;
                     groupCorrectAnswers[data.group] = 0;
-                    groupTotalAnswers[data.group] = 0;
                     groupColors[data.group] = getRandomColor();
                 }
                 groupScores[data.group] += data.score;
                 groupCorrectAnswers[data.group] += data.correct_answers;
-                groupTotalAnswers[data.group] += data.total_answers;
             });
 
             let sortedGroups = Object.keys(groupScores).sort((a, b) => groupScores[b] - groupScores[a]);
@@ -163,7 +159,7 @@
             statsContainer.innerHTML = "";
             
             sortedGroups.forEach(group => {
-                let accuracy = (groupTotalAnswers[group] > 0) ? Math.round((groupCorrectAnswers[group] / groupTotalAnswers[group]) * 100) : 0;
+                let accuracy = Math.round((groupCorrectAnswers[group] / 10) * 100);
                 let statItem = document.createElement("div");
                 statItem.classList.add("stats-item");
                 statItem.style.color = groupColors[group];
