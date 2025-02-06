@@ -24,16 +24,27 @@
             margin: auto;
             padding: 1rem;
         }
+        .stats-container {
+            margin-top: 20px;
+        }
         canvas {
             background: transparent;
             width: 100%;
             height: auto;
         }
-
-        /* Мобильная адаптивность */
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .group-name {
+            font-weight: bold;
+        }
+        
         @media (max-width: 600px) {
             h1 {
-                font-size: 1.5rem; /* Уменьшение размера шрифта для мобильных */
+                font-size: 1.5rem;
             }
             .leaderboard-container {
                 width: 100%;
@@ -52,6 +63,7 @@
     <div class="leaderboard-container">
         <h1>Leaderboard по группам</h1>
         <canvas id="leaderboardChart"></canvas>
+        <div class="stats-container" id="statsContainer"></div>
     </div>
 
     <script type="module">
@@ -71,25 +83,17 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Все группы
-        let groupScores = {
-            "101": 0, "102": 0, "103": 0, "104": 0, "105": 0, "106": 0, "107": 0, "108": 0, "109": 0, "110": 0,
-            "111": 0, "112": 0, "201": 0, "202": 0, "203": 0, "204": 0, "205": 0, "206": 0, "207": 0, "208": 0, "209": 0,
-            "210": 0, "211": 0, "212": 0, "301": 0, "302": 0, "303": 0, "304": 0, "305": 0, "306": 0, "307": 0, "308": 0,
-            "309": 0, "310": 0, "311": 0, "312": 0, "403": 0, "404": 0
-        };
+        let groupScores = {};
+        let groupCorrectAnswers = {};
+        let groupTotalAnswers = {};
 
-        // Генерируем цвета для групп
         function getRandomColor() {
             return `hsl(${Math.random() * 360}, 70%, 60%)`;
         }
         let groupColors = {};
-        Object.keys(groupScores).forEach(group => {
-            groupColors[group] = getRandomColor();
-        });
 
         const ctx = document.getElementById("leaderboardChart").getContext("2d");
-
+        
         const chart = new Chart(ctx, {
             type: "bar",
             data: {
@@ -103,7 +107,7 @@
             },
             options: {
                 responsive: true,
-                indexAxis: 'y', // Горизонтальные полосы
+                indexAxis: 'y',
                 plugins: {
                     legend: {
                         display: false
@@ -131,33 +135,43 @@
         async function updateLeaderboard() {
             const querySnapshot = await getDocs(collection(db, "quiz_results"));
             
-            // Обнуление перед пересчётом
-            for (let group in groupScores) {
-                groupScores[group] = 0;
-            }
+            groupScores = {};
+            groupCorrectAnswers = {};
+            groupTotalAnswers = {};
 
             querySnapshot.forEach(doc => {
                 const data = doc.data();
-                if (groupScores[data.group] !== undefined) {
-                    groupScores[data.group] += data.score;
+                if (!groupScores[data.group]) {
+                    groupScores[data.group] = 0;
+                    groupCorrectAnswers[data.group] = 0;
+                    groupTotalAnswers[data.group] = 0;
+                    groupColors[data.group] = getRandomColor();
                 }
+                groupScores[data.group] += data.score;
+                groupCorrectAnswers[data.group] += data.correct_answers;
+                groupTotalAnswers[data.group] += data.total_answers;
             });
 
-            // Фильтруем только группы с баллами > 0
-            let filteredGroups = Object.keys(groupScores)
-                .filter(group => groupScores[group] > 0)
-                .sort((a, b) => groupScores[b] - groupScores[a]); // Сортируем по убыванию
-
-            let filteredScores = filteredGroups.map(group => groupScores[group]);
-            let filteredColors = filteredGroups.map(group => groupColors[group]);
-
-            chart.data.labels = filteredGroups;
-            chart.data.datasets[0].data = filteredScores;
-            chart.data.datasets[0].backgroundColor = filteredColors;
+            let sortedGroups = Object.keys(groupScores).sort((a, b) => groupScores[b] - groupScores[a]);
+            
+            chart.data.labels = sortedGroups;
+            chart.data.datasets[0].data = sortedGroups.map(group => groupScores[group]);
+            chart.data.datasets[0].backgroundColor = sortedGroups.map(group => groupColors[group]);
             chart.update();
+            
+            const statsContainer = document.getElementById("statsContainer");
+            statsContainer.innerHTML = "";
+            
+            sortedGroups.forEach(group => {
+                let accuracy = (groupTotalAnswers[group] > 0) ? Math.round((groupCorrectAnswers[group] / groupTotalAnswers[group]) * 100) : 0;
+                let statItem = document.createElement("div");
+                statItem.classList.add("stats-item");
+                statItem.style.color = groupColors[group];
+                statItem.innerHTML = `<span class='group-name'>Группа ${group}</span> <span>${accuracy}%</span>`;
+                statsContainer.appendChild(statItem);
+            });
         }
 
-        // Подписка на изменения в Firestore
         onSnapshot(collection(db, "quiz_results"), () => {
             updateLeaderboard();
         });
