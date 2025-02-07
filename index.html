@@ -216,7 +216,6 @@
                 statItem.innerHTML = `<span class='group-name'>Группа ${group}</span> <span>${accuracy}%</span>`;
                 statsContainer.appendChild(statItem);
             });
-        }
 
         onSnapshot(collection(db, "quiz_results"), (snapshot) => {
     if (!snapshot.empty) {
