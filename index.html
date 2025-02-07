@@ -133,7 +133,7 @@
         });
 
         async function updateLeaderboard() {
-    const querySnapshot = await getDocs(collection(db, "quiz_fizra"));
+    const querySnapshot = await getDocs(collection(db, "quiz_results"));
     
     groupScores = {};
     groupCorrectAnswers = {};
