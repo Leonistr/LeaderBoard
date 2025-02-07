@@ -189,12 +189,6 @@
     });
 }
 
-    
-    groupScores[data.group] += data.score;
-    groupCorrectAnswers[data.group] += Number(data.score) || 0; // Исправляем, берём score вместо correct_answers
-    groupParticipants[data.group] += 1;
-    
-
             let sortedGroups = Object.keys(groupScores).sort((a, b) => groupScores[b] - groupScores[a]);
             
             chart.data.labels = sortedGroups;
